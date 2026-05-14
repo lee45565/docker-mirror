@@ -1,0 +1,37 @@
+name: 自动搬运Docker镜像
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: '请输入完整的镜像名'
+        required: true
+        default: 'quay.io/ascend/vllm-ascend:v0.18.0-a3'
+      platform:
+        description: '请输入目标平台'
+        required: true
+        default: 'linux/arm64'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 准备多架构支持
+        uses: docker/setup-qemu-action@v3
+
+      - name: 拉取、打包、分卷
+        run: |
+          IMAGE=${{ github.event.inputs.image }}
+          FILE=$(echo $IMAGE | tr '/:' '_')
+          docker pull --platform ${{ github.event.inputs.platform }} $IMAGE
+          docker save $IMAGE | gzip > ${FILE}.tar.gz
+          split -b 1900M -d ${FILE}.tar.gz ${FILE}.tar.gz.part.
+
+      - name: 发布到Releases供下载
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: backup-${{ github.run_number }}
+          files: |
+            *.tar.gz.part.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
