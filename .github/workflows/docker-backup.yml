@@ -31,16 +31,12 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: backup-${{ github.run_number }}
-          name: Docker Image: ${{ github.event.inputs.image }}
+          name: "Docker Image: ${{ github.event.inputs.image }}"
           body: |
             ### 📥 下载与使用命令
-
             **1. 合并所有分卷**
-
                 cat *.tar.gz.part.* > image.tar.gz
-
             **2. 加载镜像**
-
                 docker load -i image.tar.gz
           files: |
             *.tar.gz.part.*
