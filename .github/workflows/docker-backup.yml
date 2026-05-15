@@ -31,21 +31,6 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: backup-${{ github.run_number }}
-          name: Docker Image: ${{ github.event.inputs.image }}
-          body: |
-            ### 镜像信息
-            - 镜像名: ${{ github.event.inputs.image }}
-            - 平台: ${{ github.event.inputs.platform }}
-
-            ### 下载与使用方法
-            1. 下载所有 .part.000 ~ .part.002 分卷文件
-            2. 在 Windows 上合并分卷：
-               copy /b *.part.* 完整文件名.tar.gz
-            3. 将合并后的文件传到 ARM 服务器
-            4. 在服务器上加载镜像：
-               docker load -i 完整文件名.tar.gz
-            5. 验证架构：
-               docker inspect 镜像名 | grep Architecture
           files: |
             *.tar.gz.part.*
         env:
