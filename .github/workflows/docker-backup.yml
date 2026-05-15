@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 准备多架构支持
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: 拉取、打包、分卷
         run: |
@@ -28,9 +28,27 @@ jobs:
           split -b 1900M -d ${FILE}.tar.gz ${FILE}.tar.gz.part.
 
       - name: 发布到Releases供下载
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: backup-${{ github.run_number }}
+          name: Docker Image: ${{ github.event.inputs.image }}
+          body: |
+            ### 镜像信息
+            - **镜像名**: ${{ github.event.inputs.image }}
+            - **平台**: ${{ github.event.inputs.platform }}
+            - **文件大小**: 请在 Assets 中查看分卷文件详情
+
+            ### 下载与使用方法
+            1.  **下载所有分卷**：下载 Assets 中以 `.part.000`、`.part.001`、`.part.002` 结尾的所有文件。
+            2.  **合并分卷（在 Windows 上）**：
+               打开命令提示符，进入下载目录，执行：
+               `copy /b quay.io_ascend_vllm-ascend_v0.18.0-a3.tar.gz.part.* quay.io_ascend_vllm-ascend_v0.18.0-a3.tar.gz`
+            3.  **上传到 ARM 服务器**：将合并后的 `.tar.gz` 文件传输到你的 ARM 服务器。
+            4.  **加载镜像（在 ARM 服务器上）**：
+               `sudo docker load -i quay.io_ascend_vllm-ascend_v0.18.0-a3.tar.gz`
+            5.  **验证并运行**：
+               验证架构：`sudo docker inspect quay.io/ascend/vllm-ascend:v0.18.0-a3 | grep Architecture`
+               启动容器请参考你之前的 `docker run` 命令。
           files: |
             *.tar.gz.part.*
         env:
